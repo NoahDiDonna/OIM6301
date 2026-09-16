@@ -49,6 +49,23 @@ def _():
     return (mo,)
 
 
+@app.cell
+def _():
+    1+2
+    return
+
+
+@app.cell
+def _():
+    print("hello world")
+    return
+
+
+@app.cell
+def _():
+    return
+
+
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
@@ -100,6 +117,12 @@ def _():
     return (freight_charges,)
 
 
+@app.cell
+def _(freight_charges):
+    freight_charges
+    return
+
+
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
@@ -118,6 +141,33 @@ def _(mo):
     *The number in brackets is an **index**, and Python counts from zero, so
     `freight_charges[0]` is the first one.*
     """)
+    return
+
+
+@app.cell
+def _(freight_charges):
+    freight_charges[0]
+    return
+
+
+@app.cell
+def _():
+    for i in range(5):
+        print(i)
+
+    return
+
+
+@app.cell
+def _(freight_charges):
+    len(freight_charges)
+    return
+
+
+@app.cell
+def _(freight_charges):
+    total = sum(freight_charges)
+    total
     return
 
 
@@ -203,6 +253,18 @@ def _(mo):
     6. `orders * 2`, then `orders + freight_charges`. Neither one is an error.
     7. `sorted(freight_charges)`, then `sorted(freight_charges, reverse=True)`. What did `reverse=True` change, and did `freight_charges` itself change?
     """)
+    return
+
+
+@app.cell
+def _():
+    print("For #1, I think that this command will not run, as the position -1 is not assigned a value.")  
+
+    print("For #2, I think that the output will show all of the values from 0:3.")
+
+    print("For #3, these two functions are technically calling the same value, but order will call the number that value is in the order of values, and freight_charges[0] will give us the actual value for freight charges in that position.")
+
+    print("For #4, ")
     return
 
 
