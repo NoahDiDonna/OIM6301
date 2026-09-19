@@ -154,7 +154,6 @@ def _(freight_charges):
 def _():
     for i in range(5):
         print(i)
-
     return
 
 
@@ -168,7 +167,7 @@ def _(freight_charges):
 def _(freight_charges):
     total = sum(freight_charges)
     total
-    return
+    return (total,)
 
 
 @app.cell(hide_code=True)
@@ -195,6 +194,18 @@ def _(mo):
     typing inside one cell. Use the **undo** button at the bottom right, which stays
     there until you close the notebook, or `Ctrl+K` and search for undo.*
     """)
+    return
+
+
+@app.cell
+def _():
+    print("For #1, it automatically updates all the cells below that with the corresponding value, changing 16.75 to 999.99 each time it is called.")
+
+    print("For #2, this command will make all other commands that pertain to freight_charges have an error output, as they reference a name that no longer exists.")
+
+    print("For #3, you will get a multiple definition error, as total has already been defined.")
+
+    print("For #4, it will still run, as cells arent executed top to bottom, marimo will run the defining cell first before the displaying cell.")
     return
 
 
@@ -264,7 +275,39 @@ def _():
 
     print("For #3, these two functions are technically calling the same value, but order will call the number that value is in the order of values, and freight_charges[0] will give us the actual value for freight charges in that position.")
 
-    print("For #4, ")
+    print("For #4, it is counting the total amount of characters in the string rather than the number of values in the list.")
+
+    print("For #5, it runs but it is not meaningful, as these are order numbers and have no numeric value.")
+    return
+
+
+@app.cell
+def _(orders):
+    orders * 2
+    return
+
+
+@app.cell
+def _(freight_charges, orders):
+    orders + freight_charges
+    return
+
+
+@app.cell
+def _(freight_charges):
+    sorted(freight_charges)
+    return
+
+
+@app.cell
+def _(freight_charges):
+    sorted(freight_charges, reverse=True)
+    return
+
+
+@app.cell
+def _():
+    print("For #7, reverse=true just changed the order in whoch the values were displayed. The values themselves did not change.")
     return
 
 
@@ -308,6 +351,18 @@ def _(mo):
     return
 
 
+@app.cell
+def _():
+    "16.75" + "22.25"
+    return
+
+
+@app.cell
+def _():
+    16.75 + "22.25"
+    return
+
+
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
@@ -339,6 +394,30 @@ def _(mo):
 
     📖 Handbook: Python §3 Expressions and operators
     """)
+    return
+
+
+@app.cell
+def _(freight_charges):
+    freight_charges[0] > 20
+    return
+
+
+@app.cell
+def _(freight_charges):
+    freight_charges[-1] == max(freight_charges)
+    return
+
+
+@app.cell
+def _(freight_charges):
+    type(freight_charges[0] > 20)
+    return
+
+
+@app.cell
+def _(freight_charges):
+    type(freight_charges[-1] == max(freight_charges))
     return
 
 
@@ -377,6 +456,13 @@ def _(mo):
 
     Your sentence should show `$120.50` and `$24.10`. If it does not, the experiments above left something changed: check that `freight_charges` still starts with `16.75` and that your `total` cell is still there.
     """)
+    return
+
+
+@app.cell
+def _(freight_charges, total):
+    average = total / len(freight_charges)
+    print(f"The total freight was ${total:.2f}, with an average charge of ${average:.2f}.")
     return
 
 
@@ -430,6 +516,22 @@ def _(mo):
     return
 
 
+@app.cell
+def _(freight_charges):
+    under_25 = []
+    for charge1 in freight_charges:
+        if charge1 < 25:
+            under_25.append(charge1)
+    under_25
+    return (under_25,)
+
+
+@app.cell
+def _(under_25):
+    print(f"There are {len(under_25)} charges below or equal to 25, adding up to ${sum(under_25):.2f}.")
+    return
+
+
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
@@ -468,6 +570,45 @@ def _(mo):
     return
 
 
+@app.cell
+def _():
+    import pandsa
+
+    return
+
+
+@app.cell
+def _():
+    print("This error is because a package pandsa doesn't exist and it is likely a typo for pandas.")
+    return
+
+
+@app.cell
+def _():
+    open("sales.csv")
+    return
+
+
+@app.cell
+def _():
+    print("This error exists because there is no file that exists in my directory called sales.csv.")
+    return
+
+
+app._unparsable_cell(
+    r"""
+    new_charges = [16.75, 22.25
+    """,
+    name="_"
+)
+
+
+@app.cell
+def _():
+    print("There is an error because the bracket was not closed.")
+    return
+
+
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
@@ -477,6 +618,12 @@ def _(mo):
 
     `max(["9.50", "16.75", "22.25"])`
     """)
+    return
+
+
+@app.cell
+def _():
+    max(["9.50", "16.75", "22.25"])
     return
 
 
@@ -526,6 +673,12 @@ def _(mo):
     return
 
 
+@app.cell
+def _():
+    print("Python names line 3, which is the sum line. I would get rid of pending in the freight charges assignment, as you can't add floats and strings together with the sum function. I would probably remove it completely, as since it is pending there is no value for that data point yet.")
+    return
+
+
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
@@ -552,6 +705,18 @@ def _(mo):
 
     The square brackets inside `_ax.bar(...)` are a **list comprehension**, which **iterates** over `orders` and turns each number into text.
     """)
+    return
+
+
+@app.cell
+def _(freight_charges, orders):
+    import matplotlib.pyplot as plt
+
+    _fig, _ax = plt.subplots(figsize=(6, 2.6))
+    _ax.bar([str(_o) for _o in orders], freight_charges)
+    _ax.set_ylabel("freight")
+    _fig
+
     return
 
 
