@@ -635,6 +635,32 @@ def _(mo):
     return
 
 
+@app.cell
+def _(first_order):
+    first_order["Freight"]
+    return
+
+
+@app.cell
+def _(first_order):
+    first_order["freight"]
+    return
+
+
+@app.cell
+def _(first_order):
+    first_order[0]
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    first_order["freight"] and first_order[0] both give a KeyError because both are asking for a key that isn't on record.
+    """)
+    return
+
+
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
@@ -724,6 +750,49 @@ def _(mo):
     return
 
 
+@app.cell
+def _(orders):
+    total_freight = 0
+    for order in orders:
+        total_freight = total_freight + order["Freight"]
+    total_freight
+    return
+
+
+@app.cell
+def _(orders):
+    no_shipped_count = 0
+    for order1 in orders:
+        if order1["ShippedDate"] is None:
+            no_shipped_count = no_shipped_count + 1
+    no_shipped_count
+    return
+
+
+@app.cell
+def _(orders):
+    largest_freight = 0
+    largest_order = None
+    for order2 in orders:
+        if order2["Freight"] > largest_freight:
+            largest_freight = order2["Freight"]
+            largest_order = order2["OrderID"]
+    largest_order, largest_freight
+    return
+
+
+@app.cell
+def _():
+    # Concepts used: name and assignment, loop, condition, a record read by name.
+    return
+
+
+@app.cell
+def _():
+    # All three have an OrderDate in 2018, 2 years after all of the other ones. This means that they likely just haven't shipped yet at the time this table was taken
+    return
+
+
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
@@ -744,10 +813,7 @@ def _(mo):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    *One row is ...*
-
-    *(Replace this line with your own sentence. If this cell shows you code instead of
-    text, use the cell menu to turn it into a markdown cell.)*
+    One row is one order that the customer placed, from when it was ordered to when it went out the door.
     """)
     return
 
@@ -785,6 +851,76 @@ def _():
         {"Symbol": "TSLA", "Shares": 150, "Price": 255.70},
     ]
     portfolio
+    return (portfolio,)
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    In order to figure out how to buy the portfolio, I would multiply each share price by the amount of shares for the corresponding stock, and then add all of those numbers together to get the total cost of the portfolio.
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    Look at one holding at a time.
+    For each one, multiply its number of shares by its price — that gives the cost of that one holding.
+    Keep a running total, starting at zero.
+    Add each holding's cost onto that running total as you go.
+    After going through every holding, the running total is the cost of the whole portfolio.
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    portfolio_total = 0 — a name, set to zero before the loop starts. This is the running total you met in section 2, and it has to start at zero or the first addition would be wrong.
+
+    for holding in portfolio: — a loop, once for each record in the list portfolio. Each time through, holding is one dictionary, e.g. {"Symbol": "AAPL", "Shares": 100, "Price": 173.93}.
+
+    holding_cost = holding["Shares"] * holding["Price"] — a record read by name, twice: pulling out the "Shares" field and the "Price" field from the current holding, then multiplying them. This is the one new calculation per record — how much that single holding costs.
+
+    portfolio_total = portfolio_total + holding_cost — the running total: take what you've accumulated so far, add this holding's cost, and store it back under the same name. This is exactly the pattern from the freight-total cell in section 5, just with one extra multiplication first.
+
+    portfolio_total — the last expression in the cell, so marimo displays it as the cell's output.
+    """)
+    return
+
+
+@app.cell
+def _(portfolio):
+    portfolio_total = 0
+    for holding in portfolio:
+        holding_cost = holding["Shares"] * holding["Price"]
+        portfolio_total = portfolio_total + holding_cost
+    portfolio_total
+    return
+
+
+@app.cell
+def _():
+    warehouse = [
+        {"Product": "Widget", "Units": 40, "CostPerUnit": 12.50},
+        {"Product": "Gadget", "Units": 15, "CostPerUnit": 89.00},
+        {"Product": "Gizmo",  "Units": 60, "CostPerUnit": 5.75},
+        {"Product": "Doohickey", "Units": 8, "CostPerUnit": 220.00},
+        {"Product": "Thingamajig", "Units": 30, "CostPerUnit": 17.40},
+        {"Product": "Contraption", "Units": 5, "CostPerUnit": 499.99},
+    ]
+    warehouse
+    return (warehouse,)
+
+
+@app.cell
+def _(warehouse):
+    warehouse_total = 0
+    for product in warehouse:
+        product_cost = product["Units"] * product["CostPerUnit"]
+        warehouse_total = warehouse_total + product_cost
+    warehouse_total
     return
 
 
