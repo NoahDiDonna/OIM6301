@@ -522,6 +522,19 @@ def _(mo):
     return
 
 
+@app.cell
+def _(requests):
+    board_reply = requests.post(
+        "https://oim.zhili.dev/message",
+        headers={"x-token": "NoahDiDonna"},
+        json={"message": f"Hi from Noah!"},
+        timeout=10,
+    )
+    board_reply.status_code, board_reply.json()
+
+    return
+
+
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
