@@ -105,7 +105,7 @@ def _(cash, holdings):
     for ticker, shares, price in holdings:
         portfolio_value = portfolio_value + shares * price
     portfolio_value
-    return portfolio_value, price, ticker
+    return (portfolio_value,)
 
 
 @app.cell
@@ -165,14 +165,13 @@ def _(mo):
 
 @app.cell
 def _(holdings, portfolio_value, target_weights):
+    print(f"{'ticker':<6} {'shares now':>10} {'shares at target':>16} {'buy/sell':>10} {'value after':>14} {'weight after':>12}")
     for ticker5, shares5, price5 in holdings:
         _target_shares = (portfolio_value * target_weights[ticker5]) // price5
         _transaction = _target_shares - shares5
         _value_after = _target_shares * price5
         _weight_after = _value_after / portfolio_value
-        print(f"{ticker5}: shares now = {shares5}, shares at target = {_target_shares}, "
-              f"buy/sell = {_transaction}, value after = {_value_after:.2f}, "
-              f"weight after = {_weight_after:.4f}")
+        print(f"{ticker5:<6} {shares5:>10} {_target_shares:>16.0f} {_transaction:>10.0f} {_value_after:>14,.2f} {_weight_after:>12.4f}")
     return
 
 
@@ -190,7 +189,6 @@ def _(holdings, portfolio_value, target_weights):
         _weight_after = _value_after / portfolio_value
         _deviation_points = (_weight_after - target_weights[ticker6]) * 100
         print(f"{ticker6}: weight after = {_weight_after:.4f}, deviation = {_deviation_points:.2f} points")
-
     return
 
 
@@ -294,15 +292,9 @@ def _(cash, shocked_holdings):
 
 
 @app.cell
-def _(
-    price,
-    shocked_holdings,
-    shocked_portfolio_value,
-    target_weights,
-    ticker,
-):
+def _(shocked_holdings, shocked_portfolio_value, target_weights):
     for ticker10, shares10, price10 in shocked_holdings:
-        _target_shares = (shocked_portfolio_value * target_weights[ticker]) // price
+        _target_shares = (shocked_portfolio_value * target_weights[ticker10]) // price10
         _value_after = _target_shares * price10
         _weight_after = _value_after / shocked_portfolio_value
         _deviation_points = (_weight_after - target_weights[ticker10]) * 100

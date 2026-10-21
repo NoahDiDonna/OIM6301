@@ -12,6 +12,10 @@ people = [
 ]
 
 for person in people:
-    print(person)
+    weight = person["weight"]
+    height = person["height"]
+    bmi_value = bmi.compute_bmi(weight, height)
+    category = bmi.classify_bmi(bmi_value)
+    print(f"{person["name"]} has a BMI of {bmi_value:2f} and is classified as {category}.")
 #result = bmi.compute_bmi(1.75, 78)
 #print(f"Computed BMI: {result:.2f}")
