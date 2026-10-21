@@ -294,11 +294,16 @@ def _(cash, shocked_holdings):
 @app.cell
 def _(shocked_holdings, shocked_portfolio_value, target_weights):
     for ticker10, shares10, price10 in shocked_holdings:
-        _target_shares = (shocked_portfolio_value * target_weights[ticker10]) // price10
+        _target_shares = (shocked_portfolio_value * target_weights[ticker10]) // price10 
         _value_after = _target_shares * price10
         _weight_after = _value_after / shocked_portfolio_value
         _deviation_points = (_weight_after - target_weights[ticker10]) * 100
         print(f"{ticker10}: weight after = {_weight_after:.4f}, deviation = {_deviation_points:.2f} points")
+    return
+
+
+@app.cell
+def _():
     return
 
 
