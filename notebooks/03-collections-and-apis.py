@@ -159,11 +159,11 @@ def _(mo):
 
     **B France, Brazil, Germany and USA tied for the most orders, each with 4.
 
-    **C ·**
+    **C #1 is a list, as it is many of the same thing and must change. #2 is a set, as you're asking whether you've seen a customer before. #3 is a dictionary, as it is looked up by name. #4 is a Tuple, as it is one thing with named parts that can never change.
 
-    **D ·**
+    **D I would rather use a dictionary, as each field has a name. With tuples, you have to remember which number represents which field which is easy to mix up.
 
-    **G ·**
+    **G [0] grabs whichever state babson park is in first, so it might give you the wrong out put if there are babson parks in multiple states. It gives you the wrong result in this case, as the output is Florida.
     """)
     return
 
@@ -494,6 +494,34 @@ def _():
         ("TSLA", 150, 255.70),
     ]
     holdings
+    return (holdings,)
+
+
+@app.cell
+def _(holdings):
+    total_cost = 0
+    for _symbol, _shares, _price in holdings:
+        total_cost += _shares * _price
+    print(total_cost)
+
+    # My agent said that it would just write total_cost instead of print(total_cost).
+    return
+
+
+@app.cell
+def _(holdings):
+    cost_by_ticker = {}
+    for _symbol, _shares, _price in holdings:
+        cost_by_ticker[_symbol] = _shares * _price
+
+    highest_cost = 0
+    highest_cost_ticker = None
+    for _ticker in cost_by_ticker:
+        if cost_by_ticker[_ticker] > highest_cost:
+            highest_cost = cost_by_ticker[_ticker]
+            highest_cost_ticker = _ticker
+
+    highest_cost_ticker, highest_cost
     return
 
 
@@ -513,6 +541,60 @@ def _(mo):
     return
 
 
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    For each ticker, I would keep a list of its open purchase lots(shares and price) in the order bought. On a buy, I would add a new lot to that ticker's list. On a sell, I would work through that ticker's lots starting from the oldest, and take the oldest first.
+    """)
+    return
+
+
+@app.cell
+def _(year_trades):
+    lots_by_ticker = {}
+    gains_by_ticker = {}
+    total_gain = 0
+
+    for _trade in year_trades:
+        _date, _ticker, _action, _shares, _price = _trade
+
+        if _ticker not in lots_by_ticker:
+            lots_by_ticker[_ticker] = []
+        if _ticker not in gains_by_ticker:
+            gains_by_ticker[_ticker] = 0
+
+        if _action == "buy":
+            lots_by_ticker[_ticker].append([_shares, _price])
+        else:
+            _remaining = _shares
+            while _remaining > 0:
+                _oldest_lot = lots_by_ticker[_ticker][0]
+                _lot_shares = _oldest_lot[0]
+                _lot_price = _oldest_lot[1]
+                if _lot_shares <= _remaining:
+                    _used = _lot_shares
+                    lots_by_ticker[_ticker].pop(0)
+                else:
+                    _used = _remaining
+                    _oldest_lot[0] = _lot_shares - _used
+                gains_by_ticker[_ticker] += _used * (_price - _lot_price)
+                total_gain += _used * (_price - _lot_price)
+                _remaining -= _used
+    return gains_by_ticker, lots_by_ticker, total_gain
+
+
+@app.cell
+def _(gains_by_ticker, total_gain):
+    gains_by_ticker, total_gain
+    return
+
+
+@app.cell
+def _(lots_by_ticker):
+    lots_by_ticker
+    return
+
+
 @app.cell
 def _():
     year_trades = [
@@ -526,7 +608,7 @@ def _():
         ("2026-08-12", "AAPL", "sell", 40, 250.00),
     ]
     year_trades
-    return
+    return (year_trades,)
 
 
 @app.cell(hide_code=True)
@@ -720,7 +802,7 @@ def _(requests):
 def _(wellesley_results):
     wellesley_place = wellesley_results[0]
     wellesley_place["latitude"], wellesley_place["longitude"], wellesley_place["admin1"]
-    return
+    return (wellesley_place,)
 
 
 @app.cell
@@ -735,6 +817,36 @@ def _(mo):
 
     **Going further.** Use F's coordinates to ask for Wellesley's current temperature. Build the address with an f-string, so that changing the town changes the forecast.
     """)
+    return
+
+
+@app.cell
+def _(requests):
+    babson_park_reply = requests.get(
+        "https://geocoding-api.open-meteo.com/v1/search?name=Babson+Park&count=1",
+        timeout=10,
+    )
+    babson_park_results = babson_park_reply.json()["results"]
+    babson_park_results
+    return (babson_park_results,)
+
+
+@app.cell
+def _(babson_park_results):
+    babson_park_place = babson_park_results[0]
+    babson_park_place["admin1"]
+    return
+
+
+@app.cell
+def _(requests, wellesley_place):
+    wellesley_weather_url = (
+        f"https://api.open-meteo.com/v1/forecast"
+        f"?latitude={wellesley_place['latitude']}&longitude={wellesley_place['longitude']}"
+        f"&current=temperature_2m&temperature_unit=fahrenheit&timezone=America/New_York"
+    )
+    wellesley_weather_reply = requests.get(wellesley_weather_url, timeout=10)
+    wellesley_weather_reply.json()["current"]["temperature_2m"]
     return
 
 
