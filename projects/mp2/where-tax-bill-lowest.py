@@ -57,7 +57,7 @@ def _():
 
     county = "Middlesex"
     budget_dollars = 700000
-    tax_limit_dollars = 8000
+    tax_limit_dollars = 7000
     fiscal_year = 2026
     return budget_dollars, county, fiscal_year, requests, tax_limit_dollars
 
@@ -282,6 +282,22 @@ def _(mo):
     return
 
 
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    After lowering the limit by $1000, the list of qualifying towns shortened from 12 to 10 items(towns)
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ## 8. Going Further
+    """)
+    return
+
+
 @app.cell
 def _(qualifying):
     qualifying_by_rate = sorted(qualifying, key=lambda row: row["rate"])
@@ -297,8 +313,19 @@ def _(mo):
     return
 
 
-@app.cell
-def _():
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ##9. How Many Hours did I spend on this project
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    About 3.5-4
+    """)
     return
 
 
