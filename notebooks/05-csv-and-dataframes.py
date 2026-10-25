@@ -341,6 +341,40 @@ def _(mo):
     return
 
 
+@app.cell
+def _(pl, town_table):
+    town_counts = (
+        town_table.group_by("county")
+        .agg(pl.len().alias("towns"))
+        .sort("towns", descending=True)
+    )
+    town_counts
+    return
+
+
+@app.cell
+def _(ma_counties, pl):
+    server_counts = (
+        pl.DataFrame(ma_counties)
+        .group_by("name")
+        .agg(pl.len().alias("towns"))
+        .sort("towns", descending=True)
+    )
+    server_counts
+    return
+
+
+@app.cell
+def _(pl, town_table):
+    top_bill_towns = (
+        town_table.filter(pl.col("population") > 50_000)
+        .sort("average_single_family_bill_dollars", descending=True)
+        .head(5)
+    )
+    top_bill_towns
+    return
+
+
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
@@ -384,6 +418,28 @@ def _(mo):
 
     **Going further.** Write a SQL query of your own on `town_table`, and check its answer in polars.
     """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    I think that every counties amount of towns can go down since you are increasing the threshold, but none of them can go up.
+    """)
+    return
+
+
+@app.cell
+def _(mo, town_table):
+    _df = mo.sql(
+        f"""
+        SELECT county, COUNT(*) AS towns
+        FROM town_table
+        WHERE average_single_family_value_dollars >= 2000000
+        GROUP BY county
+        ORDER BY towns DESC
+        """
+    )
     return
 
 
@@ -437,6 +493,21 @@ def _(mo):
 
     **Going further.** Color the bars or dots by a column with `color=`, and explain what the colors add.
     """)
+    return
+
+
+@app.cell
+def _(alt, mo, town_table):
+    income_bill_chart = mo.ui.altair_chart(
+        town_table.plot.point(
+            x=alt.X("income_per_capita_dollars", title="Income per person ($)"),
+            y=alt.Y("average_single_family_bill_dollars", title="Average tax bill ($)"),
+        
+            color=alt.Color("county", title="county"),
+            tooltip=["name", "county", "income_per_capita_dollars", "average_single_family_bill_dollars"],
+        ).properties(title="Towns with higher income per person tend to pay higher tax bills")
+    )
+    income_bill_chart
     return
 
 
