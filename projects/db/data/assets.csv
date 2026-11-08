@@ -1,0 +1,13 @@
+asset_id,asset_name,asset_type,sector
+1,Apple Inc.,Stock,Technology
+2,Microsoft Corp.,Stock,Technology
+3,Amazon.com Inc.,Stock,Consumer Discretionary
+4,NVIDIA Corp.,Stock,Technology
+5,JPMorgan Chase,Stock,Financials
+6,Coca-Cola Co.,Stock,Consumer Staples
+7,Exxon Mobil,Stock,Energy
+8,SPDR S&P 500 ETF,ETF,Broad Market
+9,Invesco QQQ Trust,ETF,Technology
+10,Vanguard Total Stock Market ETF,ETF,Broad Market
+11,Bitcoin,Crypto,
+12,Ethereum,Crypto,

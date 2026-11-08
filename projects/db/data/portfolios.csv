@@ -1,0 +1,16 @@
+portfolio_id,member_id,portfolio_name,created_date,strategy_label
+1,1,Portfolio 1,2025-10-15,Growth
+2,2,Portfolio 2,2025-10-15,Value
+3,3,Portfolio 3,2025-10-15,Income
+4,4,Portfolio 4,2025-10-15,Balanced
+5,5,Portfolio 5,2025-10-15,Index
+6,6,Portfolio 6,2025-10-15,Technology
+7,7,Portfolio 7,2025-10-15,Long-Term
+8,8,Portfolio 8,2025-10-15,Growth
+9,9,Portfolio 9,2025-10-15,Value
+10,10,Portfolio 10,2025-10-15,Income
+11,11,Portfolio 11,2025-10-15,Balanced
+12,12,Portfolio 12,2025-10-15,Index
+13,13,Portfolio 13,2025-10-15,Technology
+14,14,Portfolio 14,2025-10-15,Long-Term
+15,15,Portfolio 15,2025-10-15,Growth
