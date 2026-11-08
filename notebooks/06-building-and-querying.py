@@ -224,6 +224,85 @@ def _(mo):
     return
 
 
+@app.cell
+def _(database, duckdb):
+    with duckdb.connect(database) as _con:
+        _con.execute("""
+            CREATE TABLE town_bills (
+                town_name VARCHAR NOT NULL REFERENCES towns (name),
+                fiscal_year INTEGER NOT NULL,
+                average_single_family_bill INTEGER,
+                PRIMARY KEY (town_name, fiscal_year)
+            )
+        """)
+
+        _con.execute("""
+            INSERT INTO town_bills VALUES
+                ('Wellesley', 2025, 19792),
+                ('Wellesley', 2026, 20551)
+        """)
+
+        print(_con.execute("SELECT * FROM town_bills ORDER BY fiscal_year").fetchall())
+
+        # Check yourself: both of these should be refused
+        for _label, _sql in [
+            ("duplicate", "INSERT INTO town_bills VALUES ('Wellesley', 2026, 20551)"),
+            ("unknown town", "INSERT INTO town_bills VALUES ('Atlantis', 2026, 1)"),
+        ]:
+            try:
+                _con.execute(_sql)
+            except duckdb.Error as e:
+                print(_label, "->", e)
+    return
+
+
+@app.cell
+def _(requests):
+    _reply = requests.get(
+        "https://oim.zhili.dev/ma/towns",
+        params={"county": "Barnstable", "per_page": 100},
+        timeout=10,
+    )
+    barnstable_towns = _reply.json()["items"]
+    len(barnstable_towns)
+    return (barnstable_towns,)
+
+
+@app.cell
+def _(barnstable_towns, requests):
+    best_town = ""
+    best_growth = 0
+
+    for _town in barnstable_towns:
+        _history_reply = requests.get(
+            f"https://oim.zhili.dev/ma/towns/{_town['dor_code']}/history",
+            timeout=10,
+        )
+        _history = _history_reply.json()["years"]
+
+        _earliest_year = _history[0]["fiscal_year"]
+        for _row in _history:
+            if _row["fiscal_year"] < _earliest_year:
+                _earliest_year = _row["fiscal_year"]
+
+        _earliest_bill = 0
+        _later_bill = 0
+        for _row in _history:
+            if _row["fiscal_year"] == _earliest_year:
+                _earliest_bill = _row["average_single_family_bill_dollars"]
+            if _row["fiscal_year"] == _earliest_year + 10:
+                _later_bill = _row["average_single_family_bill_dollars"]
+
+        if _later_bill > 0:
+            _growth = _later_bill - _earliest_bill
+            if _growth > best_growth:
+                best_growth = _growth
+                best_town = _town["name"]
+
+    best_town, best_growth
+    return
+
+
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
@@ -257,6 +336,42 @@ def _(mo):
 
     **Going further.** Find a rule the scenario of your database project states that a constraint cannot hold, and write the query that checks it instead.
     """)
+    return
+
+
+@app.cell
+def _(database, duckdb):
+    try:
+        with duckdb.connect(database) as _con:
+            _con.execute("INSERT INTO towns VALUES ('Boston', 'Suffolk', 10, 0, 0)")
+        duplicate_name_error = "accepted"
+    except duckdb.ConstraintException as _error:
+        duplicate_name_error = str(_error).splitlines()[0]
+    duplicate_name_error
+    return
+
+
+@app.cell
+def _(database, duckdb):
+    try:
+        with duckdb.connect(database) as _con:
+            _con.execute("INSERT INTO towns VALUES ('Emptyville', 'Suffolk', 0, 0, 0)")
+        zero_population_error = "accepted"
+    except duckdb.ConstraintException as _error:
+        zero_population_error = str(_error).splitlines()[0]
+    zero_population_error
+    return
+
+
+@app.cell
+def _(database, duckdb):
+    try:
+        with duckdb.connect(database) as _con:
+            _con.execute("INSERT INTO towns VALUES ('Nowhere', 'Atlantis', 10, 0, 0)")
+        unknown_county_error = "accepted"
+    except duckdb.ConstraintException as _error:
+        unknown_county_error = str(_error).splitlines()[0]
+    unknown_county_error
     return
 
 
