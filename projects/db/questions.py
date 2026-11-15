@@ -7,15 +7,8 @@ app = marimo.App(width="medium")
 @app.cell
 def _():
     import marimo as mo
-
-    return (mo,)
-
-
-@app.cell
-def _(mo):
     import duckdb
     import polars as pl
-    from pathlib import Path
 
     database = mo.notebook_dir() / "database.duckdb"
 
@@ -23,13 +16,13 @@ def _(mo):
         with duckdb.connect(database, read_only=True) as _con:
             return _con.sql(sql).pl()
 
-    return (ask,)
+    return ask, mo
 
 
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    ## Prediction: Question #1
+    ## Prediction: Question 1
     """)
     return
 
@@ -37,7 +30,7 @@ def _(mo):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    I think there will be one row per portfolio, with columns for trades, spent on buys, and received from sells. Portfolios with no trades in the window should show 0 trades and 0 dollars, not disappear. Also, buys should come out higher than the quantity × price, and sells lower, because of the fees.
+    I think there will be one row per portfolio, with columns for trades, spent on buys, and received from sells. Portfolios with no trades in the window should show 0 trades and 0 dollars, not disappear.Also, buys should come out higher than the quantity × price, and sells lower, because of the fees.
     """)
     return
 
@@ -73,7 +66,7 @@ def _(ask):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    ## Prediction: Question 2
+    ## Prediction: Q2
     """)
     return
 
@@ -82,6 +75,14 @@ def _(mo):
 def _(mo):
     mo.md(r"""
     I think the result will have one row per member, so the row count should match however many members are in the members table. Members with no portfolio should still show up with 0 portfolios and 0 dollars bought, as long as I use LEFT JOINs. Most members will probably have one or two portfolios, and the ones with more will have the biggest totals. I’m also expecting the portfolio counts to come out too high at first, because each portfolio repeats for every trade after the join, so I’ll need COUNT(DISTINCT) to fix that. The total bought should only count buy trades.
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ## 2. Portfolio count and total value bought, by member
     """)
     return
 
@@ -101,11 +102,6 @@ def _(ask):
         GROUP BY m.member_id
         ORDER BY m.member_id
     """)
-    return
-
-
-@app.cell
-def _():
     return
 
 
