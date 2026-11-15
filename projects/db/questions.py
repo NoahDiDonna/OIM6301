@@ -70,6 +70,40 @@ def _(ask):
     return
 
 
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ## Prediction: Question 2
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    I think the result will have one row per member, so the row count should match however many members are in the members table. Members with no portfolio should still show up with 0 portfolios and 0 dollars bought, as long as I use LEFT JOINs. Most members will probably have one or two portfolios, and the ones with more will have the biggest totals. I’m also expecting the portfolio counts to come out too high at first, because each portfolio repeats for every trade after the join, so I’ll need COUNT(DISTINCT) to fix that. The total bought should only count buy trades.
+    """)
+    return
+
+
+@app.cell
+def _(ask):
+    ask("""
+        SELECT
+            m.member_id,
+            COUNT(DISTINCT p.portfolio_id) AS portfolio_count,
+            COALESCE(SUM(CASE WHEN t.trade_type = 'Buy'
+                THEN t.quantity * t.price_per_unit ELSE 0 END), 0)
+                AS total_bought
+        FROM members AS m
+        LEFT JOIN portfolios AS p ON p.member_id = m.member_id
+        LEFT JOIN trades AS t ON t.portfolio_id = p.portfolio_id
+        GROUP BY m.member_id
+        ORDER BY m.member_id
+    """)
+    return
+
+
 @app.cell
 def _():
     return
