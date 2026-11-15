@@ -581,6 +581,30 @@ def _(Path, pl):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
+    #Loading the CSVs into the Tables
+    """)
+    return
+
+
+@app.cell
+def _(data_dir, database, duckdb):
+    with duckdb.connect(database) as _con:
+        for _table in [
+            "members", "portfolios", "assets",
+            "asset_tickers", "closing_prices", "trades"
+        ]:
+            _con.execute(f"""
+                INSERT INTO {_table}
+                SELECT * FROM read_csv(
+                    '{data_dir / f"{_table}.csv"}', header=true
+                )
+            """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
     #A Row It Refuses
     """)
     return
