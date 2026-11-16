@@ -167,5 +167,48 @@ def _(mo):
     return
 
 
+@app.cell
+def _(ask):
+    ask("""
+        SELECT
+            t.trade_id,
+            t.portfolio_id,
+            a.asset_name,
+            t.trade_date,
+            t.price_per_unit AS trade_price,
+            c.closing_price,
+            (t.price_per_unit - c.closing_price) / c.closing_price * 100
+                AS pct_diff_from_close
+        FROM trades AS t
+        JOIN assets AS a ON a.asset_id = t.asset_id
+        JOIN closing_prices AS c
+            ON c.asset_id = t.asset_id AND c.price_date = t.trade_date
+        WHERE t.trade_date >= (SELECT MAX(trade_date) FROM trades) - INTERVAL 90 DAY
+        ORDER BY t.trade_date, t.trade_id
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ## Prediction: Q5
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    I think the result will be a short list of assets, one row per asset that the club follows but that never shows up in any trade. I’ll get them with a LEFT JOIN from assets to trades and keep only the rows where the trade side is NULL (or use NOT EXISTS), so I expect it to be way fewer rows than the whole assets table. If I use a plain inner join or filter the wrong way, I’d get the traded assets instead, which is the opposite of what the question asks.
+    """)
+    return
+
+
+@app.cell
+def _():
+    return
+
+
 if __name__ == "__main__":
     app.run()
