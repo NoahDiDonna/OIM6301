@@ -397,8 +397,11 @@ def _(mo):
     return
 
 
-@app.cell
-def _():
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    I think the result will have one row per portfolio and sector pair, showing the market value of what that portfolio holds in that sector on 2026-10-31. For each asset I’ll take units bought minus units sold, multiply by that asset’s closing price on that date, and then add those up by sector, so portfolios that hold nothing in a sector won’t have a row for it. If an asset has no closing price on exactly 2026-10-31, I expect its value to drop out or show NULL, which would make some portfolio totals come out too low.
+    """)
     return
 
 
