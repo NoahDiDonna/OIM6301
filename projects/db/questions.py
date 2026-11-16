@@ -238,6 +238,72 @@ def _(mo):
 
 
 @app.cell
+def _(ask):
+    ask("""
+        SELECT asset_id, COUNT(*) AS ticker_count
+        FROM asset_tickers
+        GROUP BY asset_id
+        ORDER BY ticker_count DESC
+    """)
+    return
+
+
+@app.cell
+def _(ask):
+    ask("""
+        WITH changed_ticker_asset AS (
+            SELECT asset_id
+            FROM asset_tickers
+            GROUP BY asset_id
+            HAVING COUNT(*) > 1
+        )
+        SELECT
+            a.asset_id,
+            a.asset_name,
+            STRING_AGG(DISTINCT tk.ticker, ', ') AS tickers_used,
+            SUM(t.quantity * t.price_per_unit) AS total_value_traded
+        FROM changed_ticker_asset AS c
+        JOIN assets AS a ON a.asset_id = c.asset_id
+        JOIN asset_tickers AS tk ON tk.asset_id = c.asset_id
+        JOIN trades AS t ON t.asset_id = c.asset_id
+        GROUP BY a.asset_id, a.asset_name
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ##Prediction: Q7
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    I think the result will be a very short list, each one on a date where its asset has no closing price (like a weekend or holiday). I’ll find them by LEFT JOINing trades to prices on both asset and trade date and keeping only the rows where the price side is NULL, so everything else should drop out. If my tables already refuse that kind of row, the list will come back empty and I’ll have to show that refusal in my answer instead.
+    """)
+    return
+
+
+@app.cell
+def _(ask):
+    ask("""
+        SELECT
+            t.trade_id,
+            t.portfolio_id,
+            t.asset_id,
+            t.trade_date
+        FROM trades AS t
+        LEFT JOIN closing_prices AS c
+            ON c.asset_id = t.asset_id AND c.price_date = t.trade_date
+        WHERE c.asset_id IS NULL
+    """)
+    return
+
+
+@app.cell
 def _():
     return
 
