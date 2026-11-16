@@ -200,7 +200,39 @@ def _(mo):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    I think the result will be a short list of assets, one row per asset that the club follows but that never shows up in any trade. I’ll get them with a LEFT JOIN from assets to trades and keep only the rows where the trade side is NULL (or use NOT EXISTS), so I expect it to be way fewer rows than the whole assets table. If I use a plain inner join or filter the wrong way, I’d get the traded assets instead, which is the opposite of what the question asks.
+    I think the result will be a short list of assets, maybe none, one row per asset that the club follows but that never shows up in any trade. I’ll get them with a LEFT JOIN from assets to trades and keep only the rows where the trade side is NULL (or use NOT EXISTS), so I expect it to be way fewer rows than the whole assets table. If I use a plain inner join or filter the wrong way, I’d get the traded assets instead, which is the opposite of what the question asks.
+    """)
+    return
+
+
+@app.cell
+def _(ask):
+    ask("""
+        SELECT
+            a.asset_id,
+            a.asset_name,
+            a.asset_type,
+            a.sector
+        FROM assets AS a
+        LEFT JOIN trades AS t ON t.asset_id = a.asset_id
+        WHERE t.trade_id IS NULL
+        ORDER BY a.asset_name
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ## Prediction: Q6
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    I think the result will be one row for the single asset that changed its ticker, showing the total value traded over the year (quantity times price) combined across both the old and new ticker. The trades are probably split across two ticker values, so I expect to need to group by the asset’s id instead of the ticker, or the total would be split into two rows and look too small. If I only grouped by ticker, I’d get two separate totals that each undercount what the asset really traded.
     """)
     return
 
