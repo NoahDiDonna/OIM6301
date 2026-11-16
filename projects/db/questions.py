@@ -22,7 +22,7 @@ def _():
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    ## Prediction: Question 1
+    ## Prediction: Q1
     """)
     return
 
@@ -117,6 +117,52 @@ def _(mo):
 def _(mo):
     mo.md(r"""
     I think the result will have one row per portfolio and asset pair, showing units bought minus units sold up to 2022-12-31, with only the positive holdings kept. Assets that were completely sold off will drop out, so there should be fewer rows than the total number of portfolio and asset combinations in trades. If I forget to count sells as negative, the numbers will come out too high because everything would just add up as bought.
+    """)
+    return
+
+
+@app.cell
+def _(mo):
+    mo.md(r"""
+    ## 3. Current holdings by portfolio, as of 2026-10-31
+    """)
+    return
+
+
+@app.cell
+def _(ask):
+    ask("""
+        SELECT
+            t.portfolio_id,
+            p.portfolio_name,
+            t.asset_id,
+            a.asset_name,
+            SUM(CASE WHEN t.trade_type = 'Buy'
+                THEN t.quantity ELSE -t.quantity END) AS units_held
+        FROM trades AS t
+        JOIN portfolios AS p ON p.portfolio_id = t.portfolio_id
+        JOIN assets AS a ON a.asset_id = t.asset_id
+        WHERE t.trade_date <= DATE '2026-10-31'
+        GROUP BY t.portfolio_id, p.portfolio_name, t.asset_id, a.asset_name
+        HAVING SUM(CASE WHEN t.trade_type = 'Buy'
+            THEN t.quantity ELSE -t.quantity END) > 0
+        ORDER BY t.portfolio_id, a.asset_name
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ## Prediction: Q4
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    I think the result will have one row per trade in the 90 days ending 2026-10-31, so the row count should match how many trades happened in that window. Each trade gets matched to the closing price for the same asset on the same date, and the percent difference is (trade price minus closing price) divided by closing price times 100. Most of the differences should be pretty small, within a few percent, but any trade on a day with no closing price (like a weekend) might drop out or show NULL depending on my join.
     """)
     return
 
