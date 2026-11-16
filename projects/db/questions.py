@@ -303,8 +303,19 @@ def _(ask):
     return
 
 
-@app.cell
-def _():
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ## Prediction: Q8
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    I think the result will be a short list, where a portfolio sold more units of an asset than it held at that point. I’ll find them by adding up each portfolio’s buys minus sells for each asset up to the date of every sell, then keeping only the sells where that running holding goes below zero. If my tables already block that kind of row, the list will come back empty and I’ll show that refusal in my answer instead.
+    """)
     return
 
 
