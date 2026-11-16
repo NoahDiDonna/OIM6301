@@ -319,5 +319,88 @@ def _(mo):
     return
 
 
+@app.cell
+def _(ask):
+    ask("""
+        WITH running AS (
+            SELECT
+                t.trade_id,
+                t.portfolio_id,
+                t.asset_id,
+                t.trade_date,
+                t.trade_type,
+                t.quantity,
+                SUM(CASE WHEN t.trade_type = 'Buy'
+                    THEN t.quantity ELSE -t.quantity END)
+                    OVER (
+                        PARTITION BY t.portfolio_id, t.asset_id
+                        ORDER BY t.trade_date
+                    ) AS units_held_after
+            FROM trades AS t
+        )
+        SELECT
+            r.trade_id,
+            r.portfolio_id,
+            p.portfolio_name,
+            r.asset_id,
+            a.asset_name,
+            r.trade_date,
+            r.quantity AS sell_quantity,
+            r.units_held_after
+        FROM running AS r
+        JOIN portfolios AS p ON p.portfolio_id = r.portfolio_id
+        JOIN assets AS a ON a.asset_id = r.asset_id
+        WHERE r.trade_type = 'Sell' AND r.units_held_after < 0
+        ORDER BY r.portfolio_id, r.asset_id, r.trade_date
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ## Prediction: Q9
+    Which trades happened before their portfolio was created? (checks a rule)
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    I think the result will be no results. I’ll join trades to portfolios on portfolio_id and keep only the trades where trade_date is less than created_date, and since no constraint blocks this, any rows that show up are real violations. If I didn’t plant one for this rule, I expect the list to come back empty, which would mean the data follows the rule even though nothing forces it to.
+    """)
+    return
+
+
+@app.cell
+def _(ask):
+    ask("""
+        SELECT
+            t.trade_id,
+            t.portfolio_id,
+            p.portfolio_name,
+            p.created_date,
+            t.trade_date
+        FROM trades AS t
+        JOIN portfolios AS p ON p.portfolio_id = t.portfolio_id
+        WHERE t.trade_date < p.created_date
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ## Prediction: Q10
+    """)
+    return
+
+
+@app.cell
+def _():
+    return
+
+
 if __name__ == "__main__":
     app.run()
