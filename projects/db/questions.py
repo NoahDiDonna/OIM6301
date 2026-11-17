@@ -66,6 +66,14 @@ def _(ask):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
+    Counting the 30 days back from the latest trade in the data (my choice, since I read “last 30 days” as relative to the data and not to as_of), 12 portfolios traded, led by portfolio 1 with 5 trades, portfolio 7 with the biggest buy spend ($42,476.66 including fees) and portfolio 9 with the biggest sell proceeds at 325,875.17 after fees.
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
     ## Prediction: Q2
     """)
     return
@@ -101,6 +109,14 @@ def _(ask):
         LEFT JOIN trades AS t ON t.portfolio_id = p.portfolio_id
         GROUP BY m.member_id
         ORDER BY m.member_id
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    All 15 members have exactly 1 portfolio (none are missing one), and the total they bought (quantity × price, without fees) runs from $67,260.21 for member 11 to $2,143,422.29 for member 15.
     """)
     return
 
@@ -154,6 +170,14 @@ def _(ask):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
+    On 2026-10-31, the 15 portfolios hold 146 positive asset positions in total, with Portfolio 1 holding 10 assets, led by 31.62 units of Ethereum.
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
     ## Prediction: Q4
     """)
     return
@@ -192,6 +216,14 @@ def _(ask):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
+    In the 90 days ending at the latest trade date, all 77 trades I can see matched a closing price, and the first 10 were priced exactly at the close (0% difference).
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
     ## Prediction: Q5
     """)
     return
@@ -217,6 +249,14 @@ def _(ask):
         LEFT JOIN trades AS t ON t.asset_id = a.asset_id
         WHERE t.trade_id IS NULL
         ORDER BY a.asset_name
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    Every asset the club follows has been traded by at least one portfolio, so the list of never-traded assets is empty (0 rows), which means the query found no asset with a missing trade.
     """)
     return
 
@@ -274,6 +314,14 @@ def _(ask):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
+    My query returned 0 rows, so it found no asset with more than one ticker in asset_tickers, which means I can’t report a value traded.
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
     ##Prediction: Q7
     """)
     return
@@ -299,6 +347,14 @@ def _(ask):
         LEFT JOIN closing_prices AS c
             ON c.asset_id = t.asset_id AND c.price_date = t.trade_date
         WHERE c.asset_id IS NULL
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    I checked every trade against the closing-price rule and none broke it: every trade falls on a date when its asset has a closing price, so the list of violations is empty (0 rows), which means my tables refuse that kind of row.
     """)
     return
 
@@ -359,6 +415,14 @@ def _(ask):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
+    Three sells broke the rule that a portfolio never sells more than it holds: trade 301 (Portfolio 1 selling 22.824 units of Apple Inc. on 2026-10-29), trade 284 (Portfolio 1 selling 0.091 units of Invesco QQQ Trust on 2026-10-13), and trade 302 (Portfolio 2 selling 37.516 units of Microsoft Corp. on 2026-10-30), each leaving the portfolio with a negative holding right after the sale.
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
     ## Prediction: Q9
     Which trades happened before their portfolio was created? (checks a rule)
     """)
@@ -392,7 +456,23 @@ def _(ask):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
+    No trade happened before its portfolio was created: comparing every trade’s date to its portfolio’s created date returned 0 rows, so the data follows this rule even though nothing in the tables forces it to.
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
     ## Prediction: Q10
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    Each portfolio’s market value by sector on the as_of date
     """)
     return
 
@@ -402,6 +482,219 @@ def _(mo):
     mo.md(r"""
     I think the result will have one row per portfolio and sector pair, showing the market value of what that portfolio holds in that sector on 2026-10-31. For each asset I’ll take units bought minus units sold, multiply by that asset’s closing price on that date, and then add those up by sector, so portfolios that hold nothing in a sector won’t have a row for it. If an asset has no closing price on exactly 2026-10-31, I expect its value to drop out or show NULL, which would make some portfolio totals come out too low.
     """)
+    return
+
+
+@app.cell
+def _(ask):
+    ask("""
+        WITH holdings AS (
+            SELECT
+                t.portfolio_id,
+                t.asset_id,
+                SUM(CASE WHEN t.trade_type = 'Buy'
+                    THEN t.quantity ELSE -t.quantity END) AS units_held
+            FROM trades AS t
+            WHERE t.trade_date <= DATE '2026-10-31'
+            GROUP BY t.portfolio_id, t.asset_id
+            HAVING SUM(CASE WHEN t.trade_type = 'Buy'
+                THEN t.quantity ELSE -t.quantity END) > 0
+        )
+        SELECT
+            p.portfolio_id,
+            p.portfolio_name,
+            a.sector,
+            SUM(h.units_held * c.closing_price) AS market_value
+        FROM holdings AS h
+        JOIN portfolios AS p ON p.portfolio_id = h.portfolio_id
+        JOIN assets AS a ON a.asset_id = h.asset_id
+        JOIN closing_prices AS c
+            ON c.asset_id = h.asset_id AND c.price_date = DATE '2026-10-31'
+        GROUP BY p.portfolio_id, p.portfolio_name, a.sector
+        ORDER BY p.portfolio_id, a.sector
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    On 2026-10-31 (the date hard-coded in my query), all 15 portfolios have a market value, ranging from $56,424.47 for Portfolio 3 up to $1,571,741.39 for Portfolio 15, but every sector comes back as None, so this result can’t yet be split by sector.
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ## How I Know These Numbers Are Right.
+    """)
+    return
+
+
+@app.cell
+def _(mo):
+    mo.md(r"""
+    ## Check 1: Q1 totals equal the sum of its grouped parts
+    """)
+    return
+
+
+@app.cell
+def _(ask):
+    _grouped = ask("""
+        SELECT
+            portfolio_id,
+            COUNT(*) AS trade_count,
+            SUM(CASE WHEN trade_type = 'Buy'
+                THEN quantity * price_per_unit + fee ELSE 0 END)
+                AS buy_spend
+        FROM trades
+        WHERE trade_date >= (SELECT MAX(trade_date) FROM trades) - INTERVAL 30 DAY
+        GROUP BY portfolio_id
+    """)
+
+    _total = ask("""
+        SELECT
+            COUNT(*) AS trade_count,
+            SUM(CASE WHEN trade_type = 'Buy'
+                THEN quantity * price_per_unit + fee ELSE 0 END)
+                AS buy_spend
+        FROM trades
+        WHERE trade_date >= (SELECT MAX(trade_date) FROM trades) - INTERVAL 30 DAY
+    """)
+
+    grouped_trade_count = _grouped["trade_count"].sum()
+    grouped_buy_spend = _grouped["buy_spend"].sum()
+    total_trade_count = _total["trade_count"][0]
+    total_buy_spend = _total["buy_spend"][0]
+
+    print("sum of grouped trade_count:", grouped_trade_count, "| ungrouped total:", total_trade_count)
+    print("sum of grouped buy_spend:", grouped_buy_spend, "| ungrouped total:", total_buy_spend)
+
+    assert grouped_trade_count == total_trade_count, "trade counts don't match"
+    assert abs(grouped_buy_spend - total_buy_spend) < 0.01, "buy spend totals don't match"
+    print("Check 1 passed: grouped totals match ungrouped totals.")
+    return
+
+
+@app.cell
+def _(mo):
+    mo.md(r"""
+    ## Check 2: Holdings recomputed a second way (separate buy and sell totals)
+    """)
+    return
+
+
+@app.cell
+def _():
+    return
+
+
+@app.cell
+def _(ask):
+    _holdings = ask("""
+        SELECT
+            portfolio_id,
+            asset_id,
+            SUM(CASE WHEN trade_type = 'Buy'
+                THEN quantity ELSE -quantity END) AS units_held
+        FROM trades
+        WHERE trade_date <= DATE '2026-10-31'
+        GROUP BY portfolio_id, asset_id
+        HAVING SUM(CASE WHEN trade_type = 'Buy'
+            THEN quantity ELSE -quantity END) > 0
+        ORDER BY portfolio_id, asset_id
+    """)
+
+    _bought_minus_sold = ask("""
+        WITH bought AS (
+            SELECT portfolio_id, asset_id, SUM(quantity) AS units_bought
+            FROM trades
+            WHERE trade_type = 'Buy' AND trade_date <= DATE '2026-10-31'
+            GROUP BY portfolio_id, asset_id
+        ),
+        sold AS (
+            SELECT portfolio_id, asset_id, SUM(quantity) AS units_sold
+            FROM trades
+            WHERE trade_type = 'Sell' AND trade_date <= DATE '2026-10-31'
+            GROUP BY portfolio_id, asset_id
+        )
+        SELECT
+            b.portfolio_id,
+            b.asset_id,
+            b.units_bought - COALESCE(s.units_sold, 0) AS units_held
+        FROM bought AS b
+        LEFT JOIN sold AS s
+            ON s.portfolio_id = b.portfolio_id AND s.asset_id = b.asset_id
+        WHERE b.units_bought - COALESCE(s.units_sold, 0) > 0
+        ORDER BY b.portfolio_id, b.asset_id
+    """)
+
+    print("rows from CASE WHEN method:", len(_holdings))
+    print("rows from bought-minus-sold method:", len(_bought_minus_sold))
+
+    _merged = _holdings.join(
+        _bought_minus_sold,
+        on=["portfolio_id", "asset_id"],
+        suffix="_check"
+    )
+
+    assert len(_holdings) == len(_bought_minus_sold), "row counts don't match"
+    assert (_merged["units_held"] - _merged["units_held_check"]).abs().max() < 0.0001, \
+        "units held don't match between the two methods"
+    print("Check 2 passed: both methods agree on units held.")
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ## Working With the Agent
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    What the AI gave me: For Q5 (assets never traded), the agent wrote a LEFT JOIN from assets to trades with WHERE t.trade_id IS NULL, and it returned 0 rows. The agent called that a valid answer.
+
+    What I did: I didn’t accept an empty table at face value, since a broken query can look the same, so I asked whether 0 rows was correct. I compared COUNT(*) on assets to COUNT(DISTINCT asset_id) on trades, and both were 12, so I changed nothing and wrote the answer as “every asset has been traded.”
+
+    How I knew: The LEFT JOIN ... IS NULL pattern is the standard anti-join, and the matching counts confirmed to me that no asset was missing a trade. The evidence is in the Q5 cell, which shows the query, the “No results” output, and my answer sentence.
+
+    Related pushback: After the Q7 closing-price check also came back empty, I asked whether I should change my data to avoid an empty result. The agent said no and pointed me to my Part A notes, and the Q8 oversell check, which did return rows, showed the data can fail a rule when I’ve planted a violation.
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ## Reading It Back
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ### Q3: Prediction
+    """)
+    return
+
+
+@app.cell
+def _(mo):
+    mo.md(r"""
+    I think the result will have one row per portfolio and asset pair, showing units bought minus units sold up to 2026-10-31, with only the positive holdings kept. Assets that were completely sold off will drop out, so there should be fewer rows than the total number of portfolio and asset combinations in trades. If I forget to count sells as negative, the numbers will come out too high because everything would just add up as bought. Before any grouping, I think the joins alone (trades to portfolios to assets) will produce exactly one row per trade, so 302 rows total, since portfolio_id and asset_id are foreign keys and every trade is guaranteed to match exactly one portfolio and exactly one asset, never zero and never more than one.
+    """)
+    return
+
+
+@app.cell
+def _():
     return
 
 
