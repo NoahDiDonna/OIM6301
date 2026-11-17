@@ -694,7 +694,74 @@ def _(mo):
 
 
 @app.cell
-def _():
+def _(ask):
+    _joined = ask("""
+        SELECT
+            t.trade_id,
+            t.portfolio_id,
+            p.portfolio_name,
+            t.asset_id,
+            a.asset_name,
+            t.trade_type,
+            t.quantity
+        FROM trades AS t
+        JOIN portfolios AS p ON p.portfolio_id = t.portfolio_id
+        JOIN assets AS a ON a.asset_id = t.asset_id
+    """)
+
+    _trades_only = ask("SELECT COUNT(*) AS n FROM trades")
+
+    print("rows from the joins alone:", len(_joined))
+    print("rows in trades table:", _trades_only["n"][0])
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    Both numbers printed 302, so my prediction was right, and the reason is the FK/PK relationship: joining on primary keys can only narrow or hold the row count, never multiply it, since each side has at most one match. One row of the Q3 output is one portfolio's net position in one specific asset as of 2026-10-31
+    """)
+    return
+
+
+@app.cell
+def _(mo):
+    mo.md(r"""
+    ## Going further: chart of buy spend by portfolio (Q1)
+    """)
+    return
+
+
+@app.cell
+def _(ask):
+    import matplotlib.pyplot as plt
+
+    _spend = ask("""
+        SELECT
+            portfolio_id,
+            SUM(CASE WHEN trade_type = 'Buy'
+                THEN quantity * price_per_unit + fee ELSE 0 END)
+                AS buy_spend
+        FROM trades
+        WHERE trade_date >= (SELECT MAX(trade_date) FROM trades) - INTERVAL 30 DAY
+        GROUP BY portfolio_id
+        ORDER BY portfolio_id
+    """)
+
+    fig, ax = plt.subplots()
+    ax.bar(_spend["portfolio_id"], _spend["buy_spend"])
+    ax.set_xlabel("Portfolio ID")
+    ax.set_ylabel("Buy spend, last 30 days ($)")
+    ax.set_title("Buy spend by portfolio")
+    fig
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    Time Spent: 5-6 hours
+    """)
     return
 
 
